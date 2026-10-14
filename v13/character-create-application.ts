@@ -1,4 +1,9 @@
-import { submitCharacterCreate, type CharacterCreateOutcome, type FlightControlRequester, type OperationStore } from "../core/character-create";
+import type { FlightControlRequester, OperationStore } from "../core/character-create";
+import {
+  runCharacterCreateFlow,
+  type CharacterCreateFlowOutcome,
+  type CharacterReadEntry,
+} from "../core/character-create-flow";
 
 const { ApplicationV2 } = foundry.applications.api;
 
@@ -6,7 +11,14 @@ export interface CharacterCreateApplicationContext {
   api(): FlightControlRequester | undefined;
   store(): OperationStore;
   newId(): string;
+  openCharacter(actorId: string, entry: Exclude<CharacterReadEntry, "sheet">): Promise<boolean>;
+  notify(level: "info" | "warn", key: string): void;
+  onClose(application: CharacterCreateApplicationHandle): void;
   text(key: string): string;
+}
+
+export interface CharacterCreateApplicationHandle {
+  render(options?: boolean): Promise<unknown>;
 }
 
 function element<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string): HTMLElementTagNameMap[K] {
@@ -15,9 +27,9 @@ function element<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string): 
   return node;
 }
 
-function statusKey(outcome: CharacterCreateOutcome): string {
+function statusKey(outcome: CharacterCreateFlowOutcome): string {
   switch (outcome.status) {
-    case "created": return outcome.created ? "EAGLECHARACTEREDIT.create.created" : "EAGLECHARACTEREDIT.create.retried";
+    case "created": return "EAGLECHARACTEREDIT.create.confirmedResumable";
     case "invalid-name": return "EAGLECHARACTEREDIT.create.invalidName";
     case "storage-unavailable": return "EAGLECHARACTEREDIT.create.storageUnavailable";
     case "pending-name-mismatch": return "EAGLECHARACTEREDIT.create.pendingNameMismatch";
@@ -35,9 +47,21 @@ export function createCharacterCreateApplicationClass(context: CharacterCreateAp
 
     #busy = false;
     #status: string | undefined;
+    #confirmed: Extract<CharacterCreateFlowOutcome, { readonly status: "created" }> | undefined;
+    #viewToken = 0;
 
     protected override async _renderHTML(): Promise<HTMLElement> {
       const root = element("form");
+      if (this.#confirmed) {
+        root.append(element("p", this.#status ?? context.text("EAGLECHARACTEREDIT.create.confirmedResumable")));
+        const retryOpen = element("button", context.text("EAGLECHARACTEREDIT.create.retryOpen"));
+        retryOpen.type = "button";
+        retryOpen.dataset.action = "retry-open";
+        retryOpen.disabled = this.#busy;
+        root.append(retryOpen);
+        return root;
+      }
+
       const pending = context.store().load();
       const input = element("input") as HTMLInputElement;
       input.name = "name";
@@ -66,6 +90,11 @@ export function createCharacterCreateApplicationClass(context: CharacterCreateAp
     }
 
     protected override async _onRender(): Promise<void> {
+      const retryOpen = this.element.querySelector<HTMLButtonElement>('button[data-action="retry-open"]');
+      if (retryOpen) {
+        retryOpen.addEventListener("click", () => void this.#retryOpen());
+        return;
+      }
       const form = this.element.querySelector("form");
       const input = this.element.querySelector<HTMLInputElement>('input[name="name"]');
       if (!form || !input) return;
@@ -77,15 +106,68 @@ export function createCharacterCreateApplicationClass(context: CharacterCreateAp
 
     async #submit(name: string): Promise<void> {
       if (this.#busy) return;
+      const token = this.#viewToken;
       this.#busy = true;
       await this.render();
-      const api = context.api();
-      const outcome = api
-        ? await submitCharacterCreate(api, context.store(), context.newId, name)
-        : ({ status: "request-failed" } as const);
-      this.#status = context.text(statusKey(outcome));
+      if (token !== this.#viewToken) {
+        this.#busy = false;
+        return;
+      }
+
+      const outcome = await runCharacterCreateFlow({
+        api: context.api(),
+        store: context.store(),
+        newId: context.newId,
+        isActive: () => token === this.#viewToken,
+        open: context.openCharacter,
+      }, name);
       this.#busy = false;
+
+      if (token !== this.#viewToken) {
+        if (outcome.status === "created") context.notify("info", "EAGLECHARACTEREDIT.create.closedConfirmed");
+        else if (outcome.status === "request-failed") context.notify("warn", "EAGLECHARACTEREDIT.create.closedUnknown");
+        return;
+      }
+
+      if (outcome.status === "created" && outcome.transition === "opened") {
+        await this.close();
+        return;
+      }
+      if (outcome.status === "created") this.#confirmed = outcome;
+      this.#status = context.text(statusKey(outcome));
       await this.render();
+    }
+
+    async #retryOpen(): Promise<void> {
+      if (this.#busy || !this.#confirmed) return;
+      const token = this.#viewToken;
+      const confirmed = this.#confirmed;
+      this.#busy = true;
+      await this.render();
+      if (token !== this.#viewToken) {
+        this.#busy = false;
+        return;
+      }
+
+      let opened = false;
+      try {
+        opened = await context.openCharacter(confirmed.id, confirmed.created ? "created" : "retried");
+      } catch {
+        opened = false;
+      }
+      this.#busy = false;
+      if (token !== this.#viewToken) return;
+      if (opened) {
+        await this.close();
+        return;
+      }
+      this.#status = context.text("EAGLECHARACTEREDIT.create.confirmedResumable");
+      await this.render();
+    }
+
+    protected override _onClose(): void {
+      this.#viewToken += 1;
+      context.onClose(this);
     }
   };
 }

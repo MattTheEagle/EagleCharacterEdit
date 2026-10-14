@@ -1,5 +1,6 @@
 import { FLIGHT_CONTROL_ID, logCharacterEditReady } from "../core/index";
 import type { FlightControlRequester } from "../core/character-create";
+import { createSingleInstanceSlot, type CharacterReadEntry } from "../core/character-create-flow";
 import {
   registerWithFlightControl,
   type RegistrationLog,
@@ -7,6 +8,11 @@ import {
   type RegistrationSource,
 } from "../core/flight-control";
 import { createCharacterCreateApplicationClass } from "./character-create-application";
+import type { CharacterCreateApplicationHandle } from "./character-create-application";
+import { createCharacterReadApplicationClass } from "./character-read-application";
+import { registerCharacterReadHeaderHook } from "./character-read-hooks";
+import { observeCharacterRead } from "./character-read-observer";
+import { createFoundryCharacterReader } from "./character-read";
 import { localCharacterCreateStore } from "./operation-store";
 
 const consoleLog: RegistrationLog = {
@@ -29,20 +35,59 @@ function requestApi(): FlightControlRequester | undefined {
   return api && typeof api.request === "function" ? api : undefined;
 }
 
+function isRegistered(): boolean {
+  return registration?.status === "registered";
+}
+
+function unavailable(): void {
+  ui.notifications?.warn(text("EAGLECHARACTEREDIT.read.unavailable"));
+}
+
+function notify(level: "info" | "warn", key: string): void {
+  ui.notifications?.[level](text(key));
+}
+
+const createApplicationSlot = createSingleInstanceSlot<CharacterCreateApplicationHandle>();
+
 const CharacterCreateApplication = createCharacterCreateApplicationClass({
   api: requestApi,
   store: localCharacterCreateStore,
   newId: () => foundry.utils.randomID(),
+  openCharacter: (actorId, entry) => openCharacterRead(actorId, entry),
+  notify,
+  onClose: (application) => createApplicationSlot.release(application),
+  text,
+});
+
+const characterReader = createFoundryCharacterReader();
+const CharacterReadApplication = createCharacterReadApplicationClass({
+  read: (actorId) => isRegistered() ? characterReader.read(actorId) : undefined,
+  observe: (actorId, refresh) => observeCharacterRead({ hooks: Hooks, actorId, refresh }),
   text,
 });
 
 function openCharacterCreate(): void {
-  if (registration?.status !== "registered") return;
-  void new CharacterCreateApplication().render(true);
+  if (!isRegistered()) return;
+  const application = createApplicationSlot.acquire(() => new CharacterCreateApplication());
+  void application.render(true);
+}
+
+async function openCharacterRead(actorId: string, entry: CharacterReadEntry = "sheet"): Promise<boolean> {
+  if (!isRegistered() || !characterReader.canRead(actorId)) {
+    unavailable();
+    return false;
+  }
+  try {
+    await new CharacterReadApplication(actorId, entry).render(true);
+    return true;
+  } catch {
+    unavailable();
+    return false;
+  }
 }
 
 function warnGamemasters(): void {
-  if (registration?.status === "registered" || game.user?.isGM !== true) return;
+  if (isRegistered() || game.user?.isGM !== true) return;
   const fallback = "Eagle Character Edit is unavailable because Eagle Flight Control is missing, inactive, or incompatible.";
   const message = game.i18n?.localize("EAGLECHARACTEREDIT.registration.unavailable") ?? fallback;
   ui.notifications?.warn(message);
@@ -58,4 +103,11 @@ Hooks.once("setup", () => {
 
 Hooks.once("ready", () => {
   warnGamemasters();
+  registerCharacterReadHeaderHook({
+    hooks: Hooks,
+    isAvailable: isRegistered,
+    canRead: (actorId) => isRegistered() && characterReader.canRead(actorId),
+    open: (actorId) => void openCharacterRead(actorId),
+    label: () => text("EAGLECHARACTEREDIT.read.open"),
+  });
 });

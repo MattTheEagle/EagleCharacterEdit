@@ -1,8 +1,8 @@
 {
   "id": "eagle-character-edit",
   "title": "Eagle Character Edit",
-  "description": "Eagle Character Edit: bounded player-character creation for Foundry VTT.",
-  "version": "0.1.0",
+  "description": "Eagle Character Edit: read-only character viewing and bounded player-character creation for Foundry VTT.",
+  "version": "0.3.0",
   "authors": [{ "name": "MattTheEagle" }],
   "compatibility": { "minimum": "13", "verified": "13" },
   "relationships": {

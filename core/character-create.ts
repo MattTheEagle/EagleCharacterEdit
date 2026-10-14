@@ -22,7 +22,7 @@ export interface FlightControlRequester {
 }
 
 export type CharacterCreateOutcome =
-  | { readonly status: "created"; readonly name: string; readonly created: boolean }
+  | { readonly status: "created"; readonly id: string; readonly name: string; readonly created: boolean }
   | { readonly status: "invalid-name" }
   | { readonly status: "storage-unavailable" }
   | { readonly status: "pending-name-mismatch" }
@@ -81,6 +81,11 @@ export async function submitCharacterCreate(
     return { status: "request-failed" };
   }
   if (!isSuccess(result, operation)) return { status: "request-failed" };
-  store.clear();
-  return { status: "created", name: operation.name, created: result.value.created };
+  try {
+    store.clear();
+  } catch {
+    // The Actor is already confirmed. A stale local reference can only retry
+    // this same idempotent operation and must not turn success into failure.
+  }
+  return { status: "created", id: result.value.id, name: operation.name, created: result.value.created };
 }

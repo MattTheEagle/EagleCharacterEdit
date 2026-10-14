@@ -30,7 +30,7 @@ const manifest = JSON.parse(manifestRaw) as Manifest;
 describe("Eagle Character Edit manifest", () => {
   it("describes the approved local v13 consumer module", () => {
     expect(packageJson.name).toBe(CHARACTER_EDIT_ID);
-    expect(packageJson.version).toBe("0.1.0");
+    expect(packageJson.version).toBe("0.3.0");
     expect(manifest).toMatchObject({
       id: CHARACTER_EDIT_ID,
       title: CHARACTER_EDIT_TITLE,

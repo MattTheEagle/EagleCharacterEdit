@@ -32,6 +32,7 @@ describe("Character Edit character creation request", () => {
 
     await expect(submitCharacterCreate({ request }, operations, () => ID, "  New hero  ")).resolves.toEqual({
       status: "created",
+      id: ID,
       name: "New hero",
       created: true,
     });
@@ -55,6 +56,7 @@ describe("Character Edit character creation request", () => {
     await expect(submitCharacterCreate({ request }, operations, ids, "New hero")).resolves.toEqual({ status: "request-failed" });
     await expect(submitCharacterCreate({ request }, operations, ids, "New hero")).resolves.toEqual({
       status: "created",
+      id: ID,
       name: "New hero",
       created: false,
     });
@@ -75,5 +77,28 @@ describe("Character Edit character creation request", () => {
     await expect(submitCharacterCreate({ request }, malformed, () => ID, "New hero")).resolves.toEqual({ status: "request-failed" });
     expect(malformed.cleared).toBe(0);
     expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a confirmed Actor openable when local retry cleanup reports or throws a failure", async () => {
+    const clears = [
+      vi.fn(() => false),
+      vi.fn(() => { throw new Error("storage removal failed"); }),
+    ];
+    for (const clear of clears) {
+      const operations: OperationStore = {
+        load: () => undefined,
+        save: () => true,
+        clear,
+      };
+      const request = vi.fn(async () => ({ ok: true, value: { id: ID, name: "New hero", created: true } }));
+
+      await expect(submitCharacterCreate({ request }, operations, () => ID, "New hero")).resolves.toEqual({
+        status: "created",
+        id: ID,
+        name: "New hero",
+        created: true,
+      });
+      expect(clear).toHaveBeenCalledOnce();
+    }
   });
 });

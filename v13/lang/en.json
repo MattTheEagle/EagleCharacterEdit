@@ -14,7 +14,25 @@
       "invalidName": "Enter a character name of up to 200 characters.",
       "storageUnavailable": "Character creation cannot start because secure retry storage is unavailable.",
       "pendingNameMismatch": "Retry the saved character creation with its original name.",
-      "requestFailed": "Character creation could not be confirmed. You can retry safely."
+      "requestFailed": "Character creation could not be confirmed. You can retry safely.",
+      "confirmedResumable": "Character creation was confirmed. Open the character sheet and choose Open in Eagle Character Edit to continue.",
+      "retryOpen": "Retry Opening Editor",
+      "closedConfirmed": "Character creation was confirmed. Open the character sheet and choose Open in Eagle Character Edit to continue.",
+      "closedUnknown": "Character creation could not be confirmed. Reopen Create Player Character to retry safely."
+    },
+    "read": {
+      "title": "Eagle Character Edit",
+      "open": "Open in Eagle Character Edit",
+      "unavailable": "This character cannot be opened in Eagle Character Edit.",
+      "created": "Character created. Character details are currently read-only.",
+      "retried": "Existing character found. Continuing in Character Edit.",
+      "readOnly": "This view is read-only.",
+      "items": "Items",
+      "emptyItems": "No embedded items.",
+      "preserved": "Preserved external data",
+      "advancementPresent": "Advancement data preserved",
+      "advancementAbsent": "No advancement data",
+      "libraryMarker": "Library marker preserved"
     }
   }
 }
