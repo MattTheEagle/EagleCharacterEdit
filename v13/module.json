@@ -1,0 +1,19 @@
+{
+  "id": "eagle-character-edit",
+  "title": "Eagle Character Edit",
+  "description": "Eagle Character Edit: bounded player-character creation for Foundry VTT.",
+  "version": "0.1.0",
+  "authors": [{ "name": "MattTheEagle" }],
+  "compatibility": { "minimum": "13", "verified": "13" },
+  "relationships": {
+    "requires": [
+      {
+        "id": "eagle-flight-control",
+        "type": "module",
+        "compatibility": { "minimum": "0.10.0" }
+      }
+    ]
+  },
+  "esmodules": ["dist/module.js"],
+  "languages": [{ "lang": "en", "name": "English", "path": "lang/en.json" }]
+}

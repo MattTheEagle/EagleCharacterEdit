@@ -1,0 +1,20 @@
+{
+  "EAGLECHARACTEREDIT": {
+    "registration": {
+      "unavailable": "Eagle Character Edit is unavailable because Eagle Flight Control is missing, inactive, or incompatible."
+    },
+    "create": {
+      "title": "Create Player Character",
+      "name": "Character name",
+      "submit": "Create Character",
+      "retry": "Retry Character Creation",
+      "retryHint": "The previous request is being retried with the same character name.",
+      "created": "The player character was created.",
+      "retried": "The existing player character was found.",
+      "invalidName": "Enter a character name of up to 200 characters.",
+      "storageUnavailable": "Character creation cannot start because secure retry storage is unavailable.",
+      "pendingNameMismatch": "Retry the saved character creation with its original name.",
+      "requestFailed": "Character creation could not be confirmed. You can retry safely."
+    }
+  }
+}
