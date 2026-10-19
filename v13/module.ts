@@ -1,5 +1,6 @@
 import { FLIGHT_CONTROL_ID, logCharacterEditReady } from "../core/index";
 import type { FlightControlRequester } from "../core/character-create";
+import type { AbilityKey } from "../core/character-update";
 import { createSingleInstanceSlot, type CharacterReadEntry } from "../core/character-create-flow";
 import {
   registerWithFlightControl,
@@ -14,6 +15,7 @@ import { registerCharacterReadHeaderHook } from "./character-read-hooks";
 import { observeCharacterRead } from "./character-read-observer";
 import { createFoundryCharacterReader } from "./character-read";
 import { localCharacterCreateStore } from "./operation-store";
+import { localCharacterUpdateStore } from "./update-operation-store";
 
 const consoleLog: RegistrationLog = {
   info: (message) => console.log(message),
@@ -26,8 +28,16 @@ const flightControlSource: RegistrationSource = {
 
 let registration: RegistrationOutcome | undefined;
 
-function text(key: string): string {
+function text(key: string, data?: Record<string, string>): string {
+  if (data) return game.i18n?.format(key, data) ?? key;
   return game.i18n?.localize(key) ?? key;
+}
+
+// dnd5e localizes its ability labels during setup; an unknown configuration falls back to the key.
+function abilityLabel(key: AbilityKey): string {
+  const abilities = (CONFIG as unknown as { DND5E?: { abilities?: Record<string, { label?: unknown }> } }).DND5E?.abilities;
+  const label = abilities?.[key]?.label;
+  return typeof label === "string" && label !== "" ? text(label) : key.toUpperCase();
 }
 
 function requestApi(): FlightControlRequester | undefined {
@@ -64,6 +74,14 @@ const CharacterReadApplication = createCharacterReadApplicationClass({
   read: (actorId) => isRegistered() ? characterReader.read(actorId) : undefined,
   observe: (actorId, refresh) => observeCharacterRead({ hooks: Hooks, actorId, refresh }),
   text,
+  abilityLabel,
+  notify,
+  // The only write path of the editor: character.update through Flight Control, never a direct Foundry update.
+  updates: {
+    api: () => isRegistered() ? requestApi() : undefined,
+    store: localCharacterUpdateStore,
+    newId: () => foundry.utils.randomID(),
+  },
 });
 
 function openCharacterCreate(): void {

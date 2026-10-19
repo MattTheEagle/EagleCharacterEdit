@@ -1,4 +1,4 @@
-// Local copy of the Eagle Flight Control 0.15.0 public API contract.
+// Local copy of the Eagle Flight Control 0.16.1 public API contract.
 // It is intentionally local: this consumer does not import implementation files from another module repository.
 type RegistrationFailure =
   | "invalid-descriptor"
@@ -23,6 +23,20 @@ type RegistrationResult =
 
 type JsonValue = null | boolean | number | string | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 
+type CharacterUpdateAbility = "str" | "dex" | "con" | "int" | "wis" | "cha";
+interface CharacterUpdateV1 {
+  readonly uuid: `Actor.${string}`;
+  readonly operationId: string;
+  readonly revision: number;
+  readonly abilities: Readonly<Partial<Record<CharacterUpdateAbility, { readonly from: number; readonly to: number }>>>;
+}
+interface CharacterUpdateResultV1 {
+  readonly uuid: string;
+  readonly revision: number;
+  readonly applied: boolean;
+  readonly changed: readonly CharacterUpdateAbility[];
+}
+
 type RequestFailure =
   | "invalid-request"
   | "not-registered"
@@ -34,7 +48,8 @@ type RequestFailure =
   | "no-gm"
   | "relay-timeout"
   | "relay-failed"
-  | "not-permitted";
+  | "not-permitted"
+  | "conflict";
 
 type RequestResult =
   | { readonly ok: true; readonly value: JsonValue }

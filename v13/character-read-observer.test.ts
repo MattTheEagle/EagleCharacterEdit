@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { observeCharacterRead } from "./character-read-observer";
 
 describe("M6 Character Edit observer", () => {
-  it("refreshes only the selected actor and its embedded items, then removes every hook", () => {
+  it("refreshes only the selected actor, its embedded items and their Active Effects, then removes every hook", () => {
     let nextId = 0;
     const callbacks = new Map<number, { name: string; callback: (...args: unknown[]) => void }>();
     const off = vi.fn((_: string, id: number) => callbacks.delete(id));
@@ -26,11 +26,15 @@ describe("M6 Character Edit observer", () => {
     call("updateItem", { id: "item-a", parent: { id: "actor-a" } });
     call("deleteItem", { id: "item-a", actor: { id: "actor-a" } });
     call("updateActor", { id: "actor-a" });
+    call("createActiveEffect", { id: "effect-a", parent: { documentName: "Actor", id: "actor-a" } });
+    call("updateActiveEffect", { id: "effect-i", parent: { documentName: "Item", id: "item-a", parent: { id: "actor-a" } } });
+    call("deleteActiveEffect", { id: "effect-b", parent: { documentName: "Actor", id: "actor-b" } });
+    call("updateActiveEffect", { id: "effect-w", parent: { documentName: "Item", id: "actor-a", parent: null } });
 
-    expect(refresh).toHaveBeenCalledTimes(3);
+    expect(refresh).toHaveBeenCalledTimes(5);
     close();
     close();
-    expect(off).toHaveBeenCalledTimes(4);
+    expect(off).toHaveBeenCalledTimes(7);
     expect(callbacks).toHaveLength(0);
   });
 });

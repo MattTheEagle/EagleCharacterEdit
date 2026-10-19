@@ -24,15 +24,64 @@
       "title": "Eagle Character Edit",
       "open": "Open in Eagle Character Edit",
       "unavailable": "This character cannot be opened in Eagle Character Edit.",
-      "created": "Character created. Character details are currently read-only.",
+      "created": "Character created. Choose its ability scores to continue.",
       "retried": "Existing character found. Continuing in Character Edit.",
-      "readOnly": "This view is read-only.",
+      "readOnly": "Items are shown read-only here.",
       "items": "Items",
       "emptyItems": "No embedded items.",
       "preserved": "Preserved external data",
       "advancementPresent": "Advancement data preserved",
       "advancementAbsent": "No advancement data",
       "libraryMarker": "Library marker preserved"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "attributes": "Attributes"
+    },
+    "attributes": {
+      "method": "Method",
+      "methods": {
+        "pointBuy": "Point Buy",
+        "standardArray": "Standard Array",
+        "manual": "Manual"
+      },
+      "methodHints": {
+        "pointBuy": "Spend up to 27 points on base scores from 8 to 15.",
+        "standardArray": "Assign 15, 14, 13, 12, 10 and 8, each exactly once.",
+        "manual": "Enter any base scores, for example rolled ones."
+      },
+      "scores": "Ability Scores",
+      "explanation": "Base is what you choose here. Bonus comes from ability score improvements of species, background, class levels and feats and is kept. Total is the score on the character sheet.",
+      "hint": "Bonus {bonus} · Total {total}",
+      "hintEffects": "With active effects now: {final}",
+      "hintAboveMax": "Above the usual maximum of {max}",
+      "unassigned": "—",
+      "points": "Points spent: {spent} of {budget} ({remaining} remaining)",
+      "pointsInvalid": "Points spent: —",
+      "rules": {
+        "pointBuyRange": "{ability}: Point Buy base scores must be from 8 to 15.",
+        "pointBuyBudget": "Point Buy allows at most {budget} points; these scores cost {spent}.",
+        "standardArray": "Assign each of 15, 14, 13, 12, 10 and 8 exactly once.",
+        "manualRange": "{ability}: enter a whole base score of at least 1.",
+        "totalRange": "{ability}: base plus bonus must be from 1 to {limit}."
+      },
+      "save": "Save Attributes",
+      "saving": "Saving…",
+      "reset": "Reset",
+      "unreadable": "Ability data could not be read safely; edit this character on its sheet.",
+      "changedElsewhere": "This character changed since you started editing. Reset to load the current values.",
+      "pendingTitle": "Unconfirmed change",
+      "pendingThis": "An attribute change for this character could not be confirmed.",
+      "pendingOther": "An unconfirmed attribute change for another character is waiting. Open that character here to retry it, or discard it.",
+      "pendingValues": "Pending: {changes}",
+      "retry": "Retry",
+      "discard": "Discard",
+      "saved": "Attributes saved.",
+      "conflict": "The character was changed elsewhere. The current values were loaded; apply your changes again.",
+      "unknown": "The change could not be confirmed. You can retry safely.",
+      "denied": "You are not allowed to change this character.",
+      "noGamemaster": "A Gamemaster must be online to save changes.",
+      "failed": "The attribute change failed."
     }
   }
 }

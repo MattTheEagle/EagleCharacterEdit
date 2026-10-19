@@ -1,9 +1,9 @@
 {
   "name": "eagle-character-edit",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
-  "description": "Eagle Character Edit: read-only character viewing and bounded player-character creation for Foundry VTT.",
+  "description": "Eagle Character Edit: bounded player-character creation, character viewing and ability score editing for Foundry VTT.",
   "scripts": {
     "build:v13": "esbuild v13/module.ts --bundle --format=esm --outfile=v13/dist/module.js",
     "build": "npm run build:v13",

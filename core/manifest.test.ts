@@ -30,7 +30,7 @@ const manifest = JSON.parse(manifestRaw) as Manifest;
 describe("Eagle Character Edit manifest", () => {
   it("describes the approved local v13 consumer module", () => {
     expect(packageJson.name).toBe(CHARACTER_EDIT_ID);
-    expect(packageJson.version).toBe("0.3.0");
+    expect(packageJson.version).toBe("0.5.0");
     expect(manifest).toMatchObject({
       id: CHARACTER_EDIT_ID,
       title: CHARACTER_EDIT_TITLE,
@@ -41,7 +41,7 @@ describe("Eagle Character Edit manifest", () => {
     });
   });
 
-  it("requires the Flight Control version that first provides API 0.15.0", () => {
+  it("requires the Flight Control version that first provides API 0.16.1", () => {
     expect(manifest.relationships).toEqual({
       requires: [
         {
